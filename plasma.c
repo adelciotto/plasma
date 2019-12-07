@@ -1,4 +1,6 @@
 #include <SDL2/SDL.h>
+#include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -10,13 +12,49 @@ SDL_Surface *CreateSDLSurface(int width, int height);
 SDL_Texture *CreateSDLTexture(SDL_Renderer *renderer, int width, int height);
 
 int LockSDLSurface(SDL_Surface *surface);
+void SetPixelSDLSurface(SDL_Surface *surface, int x, int y, Uint8 r, Uint8 g,
+                        Uint8 b);
+
+void DrawFrame(SDL_Surface *surface, double elapsedTime) {
+  int width = surface->w;
+  int height = surface->h;
+
+  for (int y = 0; y < height; y++) {
+    double yCoord = (y - 0.5 * height) / (double)height;
+
+    for (int x = 0; x < width; x++) {
+      double xCoord = (x - 0.5 * width) / (double)width;
+
+      double v1 = sin(xCoord * 10.0 + elapsedTime);
+      double v2 = sin(10.0 * (xCoord * sin(elapsedTime / 2.0) +
+                              yCoord * cos(elapsedTime / 3.0)) +
+                      elapsedTime);
+
+      double cx = xCoord + 0.5 * sin(elapsedTime / 5.0);
+      double cy = yCoord + 0.5 * cos(elapsedTime / 3.0);
+      double v3 = sin(sqrt(cx * cx + cy * cy + 1.0) + elapsedTime);
+
+      double v = v1 + v2 + v3;
+      double g = cos(v * M_PI) * 0.5 + 0.5;
+      double b = sin(v * M_PI) * 0.5 + 0.5;
+
+      SetPixelSDLSurface(surface, x, y, 255, (Uint8)(g * 255),
+                         (Uint8)(b * 255));
+    }
+  }
+}
 
 int main(int argc, char *argv[]) {
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 
   // TODO: Make these configurable
-  const int width = 640;
-  const int height = 480;
+  const int width = 320;
+  const int height = 240;
+
+  // TODO: Measure actual delta time per frame and ensure
+  // that the application runs at target frame rate
+  const double timeStepSeconds = 0.01666666667;
+  double elapsedTime = 0.0;
 
   SDL_Window *window = CreateSDLWindow(width, height);
   if (window == NULL) {
@@ -50,6 +88,8 @@ int main(int argc, char *argv[]) {
       break;
     }
 
+    elapsedTime += timeStepSeconds;
+
     if (LockSDLSurface(surface) != 0) {
       fprintf(stderr, "SDL_LockSurface error: %s", SDL_GetError());
       break;
@@ -57,15 +97,11 @@ int main(int argc, char *argv[]) {
 
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
-        double r = x / (double)width;
-        double g = y / (double)height;
-
-        Uint32 *pixels = (Uint32 *)surface->pixels;
-        int index = (y * surface->pitch / surface->format->BytesPerPixel) + x;
-        pixels[index] = SDL_MapRGB(surface->format, (Uint8)(r * 255),
-                                   (Uint8)(g * 255), 128);
+        SetPixelSDLSurface(surface, x, y, 0, 0, 0);
       }
     }
+
+    DrawFrame(surface, elapsedTime);
 
     SDL_UnlockSurface(surface);
 
@@ -115,4 +151,16 @@ int LockSDLSurface(SDL_Surface *surface) {
   }
 
   return 0;
+}
+
+void SetPixelSDLSurface(SDL_Surface *surface, int x, int y, Uint8 r, Uint8 g,
+                        Uint8 b) {
+  int width = surface->w;
+  int height = surface->h;
+
+  assert(x >= 0 && x < width && y >= 0 && y < height);
+
+  Uint32 *pixels = (Uint32 *)surface->pixels;
+  int index = (y * surface->pitch / surface->format->BytesPerPixel) + x;
+  pixels[index] = SDL_MapRGB(surface->format, r, g, b);
 }
