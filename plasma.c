@@ -22,25 +22,30 @@ void DrawFrame(SDL_Surface *surface, double elapsedTime) {
   int height = surface->h;
 
   for (int y = 0; y < height; y++) {
-    double yCoord = (y - 0.5 * height) / (double)height;
+    double yNorm = (y - 0.5 * height) / (double)height;
 
     for (int x = 0; x < width; x++) {
-      double xCoord = (x - 0.5 * width) / (double)width;
+      double xNorm = (x - 0.5 * width) / (double)width;
 
-      double v1 = sin(xCoord * 10.0 + elapsedTime);
-      double v2 = sin(10.0 * (xCoord * sin(elapsedTime / 2.0) +
-                              yCoord * cos(elapsedTime / 3.0)) +
-                      elapsedTime);
+      double v = 0.0;
+      double xNormScaled = xNorm * 10.0;
+      double yNormScaled = yNorm * 10.0;
 
-      double cx = xCoord + 0.5 * sin(elapsedTime / 5.0);
-      double cy = yCoord + 0.5 * cos(elapsedTime / 3.0);
-      double v3 = sin(sqrt(cx * cx + cy * cy + 1.0) + elapsedTime);
+      v += sin(xNormScaled + elapsedTime);
+      v += sin((yNormScaled + elapsedTime) * 0.5);
+      v += sin((xNormScaled + yNormScaled + elapsedTime) * 0.5);
 
-      double v = v1 + v2 + v3;
-      double g = cos(v * M_PI) * 0.5 + 0.5;
-      double b = sin(v * M_PI) * 0.5 + 0.5;
+      double cx = xNorm + 0.5 * sin(elapsedTime * 0.2);
+      double cy = yNorm + 0.5 * cos(elapsedTime * 0.3);
 
-      SetPixelSDLSurface(surface, x, y, 255, (Uint8)(g * 255),
+      v += sin(sqrt(100.0 * (cx * cx + cy * cy) + 1.0) + elapsedTime);
+      v *= 0.5;
+
+      double r = sin(v * M_PI) * 0.5 + 0.5;
+      double g = sin(v * M_PI + 2.0 * M_PI / 3.0) * 0.5 + 0.5;
+      double b = sin(v * M_PI + 4.0 * M_PI / 3.0) * 0.5 + 0.5;
+
+      SetPixelSDLSurface(surface, x, y, (Uint8)(r * 255), (Uint8)(g * 255),
                          (Uint8)(b * 255));
     }
   }
