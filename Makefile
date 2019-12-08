@@ -1,6 +1,6 @@
 CC := gcc
 CFLAGS := -Wall -Wextra -std=c99 -pedantic -g
-LDFLAGS := -lSDL2
+LDFLAGS := -lm -lSDL2
 INCLUDES := $(pkg-config --cflags --libs sdl2)
 
 plasma: plasma.o
