@@ -15,6 +15,7 @@ SDL_Texture *CreateSDLTexture(SDL_Renderer *renderer, int width, int height);
 int LockSDLSurface(SDL_Surface *surface);
 void SetPixelSDLSurface(SDL_Surface *surface, int x, int y, Uint8 r, Uint8 g,
                         Uint8 b);
+void ClearPixelsSDLSurface(SDL_Surface *surface);
 
 void DrawFrame(SDL_Surface *surface, double elapsedTime) {
   int width = surface->w;
@@ -99,12 +100,7 @@ int main(int argc, char *argv[]) {
       break;
     }
 
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        SetPixelSDLSurface(surface, x, y, 0, 0, 0);
-      }
-    }
-
+    ClearPixelsSDLSurface(surface);
     DrawFrame(surface, elapsedTime);
 
     SDL_UnlockSurface(surface);
@@ -166,5 +162,14 @@ void SetPixelSDLSurface(SDL_Surface *surface, int x, int y, Uint8 r, Uint8 g,
 
   Uint32 *pixels = (Uint32 *)surface->pixels;
   int index = (y * surface->pitch / surface->format->BytesPerPixel) + x;
-  pixels[index] = SDL_MapRGB(surface->format, r, g, b);
+  pixels[index] = SDL_MapRGBA(surface->format, r, g, b, 255);
+}
+
+void ClearPixelsSDLSurface(SDL_Surface *surface) {
+  int size = surface->w * surface->h;
+  Uint32 *pixels = (Uint32 *)surface->pixels;
+
+  for (int i = 0; i < size; i++) {
+    pixels[i] = 0;
+  }
 }
