@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #define WINDOW_TITLE "Plasma"
+#define PERIOD_INTERVAL M_PI * 12.0
 
 SDL_Window *CreateSDLWindow(int width, int height);
 SDL_Renderer *CreateSDLRenderer(SDL_Window *window, int width, int height);
@@ -88,6 +89,9 @@ int main(int argc, char *argv[]) {
       break;
     }
 
+    if (elapsedTime >= PERIOD_INTERVAL) {
+      elapsedTime = 0;
+    }
     elapsedTime += timeStepSeconds;
 
     if (LockSDLSurface(surface) != 0) {
