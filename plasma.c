@@ -6,50 +6,28 @@
 
 #define WINDOW_TITLE "Plasma"
 #define DEFAULT_REFRESH_RATE 60
+#define PALETTE_SIZE 256
 
 SDL_Window *CreateSDLWindow(int width, int height);
 SDL_Renderer *CreateSDLRenderer(SDL_Window *window, int width, int height);
-SDL_Surface *CreateSDLSurface(int width, int height);
 SDL_Texture *CreateSDLTexture(SDL_Renderer *renderer, int width, int height);
-
 int GetDisplayRefreshRate(SDL_DisplayMode displayMode);
-int LockSDLSurface(SDL_Surface *surface);
-void SetPixelSDLSurface(SDL_Surface *surface, int x, int y, Uint8 r, Uint8 g,
-                        Uint8 b);
-void ClearPixelsSDLSurface(SDL_Surface *surface);
 double GetElapsedTimeSecs(Uint64 start, Uint64 end);
 double GetElapsedTimeMs(Uint64 start, Uint64 end);
 
-void DrawFrame(SDL_Surface *surface, double elapsedTime) {
-  int width = surface->w;
-  int height = surface->h;
+int Get1DCoordFrom2D(int x, int y, int width) { return (y * width) + x; }
+double Minf(double value, double min) { return value < min ? value : min; }
+Uint32 RGBToUint32(Uint8 r, Uint8 g, Uint8 b);
+
+void DrawFrame(Uint32 *pixelBuffer, int width, int height, Uint32 *plasma,
+               Uint32 palette[PALETTE_SIZE], double elapsedTime) {
+  int paletteShift = (int)(elapsedTime / 10.0);
 
   for (int y = 0; y < height; y++) {
-    double yNorm = (y - 0.5 * height) / (double)height;
-
     for (int x = 0; x < width; x++) {
-      double xNorm = (x - 0.5 * width) / (double)width;
-
-      double v = 0.0;
-      double xNormScaled = xNorm * 10.0;
-      double yNormScaled = yNorm * 10.0;
-
-      v += sin(xNormScaled + elapsedTime);
-      v += sin((yNormScaled + elapsedTime) * 0.5);
-      v += sin((xNormScaled + yNormScaled + elapsedTime) * 0.5);
-
-      double cx = xNorm + 0.5 * sin(elapsedTime * 0.2);
-      double cy = yNorm + 0.5 * cos(elapsedTime * 0.3);
-
-      v += sin(sqrt(100.0 * (cx * cx + cy * cy) + 1.0) + elapsedTime);
-      v *= 0.5;
-
-      double r = sin(v * M_PI) * 0.5 + 0.5;
-      double g = sin(v * M_PI + 2.0 * M_PI / 3.0) * 0.5 + 0.5;
-      double b = sin(v * M_PI + 4.0 * M_PI / 3.0) * 0.5 + 0.5;
-
-      SetPixelSDLSurface(surface, x, y, (Uint8)(r * 255), (Uint8)(g * 255),
-                         (Uint8)(b * 255));
+      int index = Get1DCoordFrom2D(x, y, width);
+      pixelBuffer[index] =
+          palette[(plasma[index] + paletteShift) % PALETTE_SIZE];
     }
   }
 }
@@ -58,8 +36,8 @@ int main(int argc, char *argv[]) {
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 
   // TODO: Make these configurable
-  const int width = 320;
-  const int height = 240;
+  const int width = 256;
+  const int height = 256;
 
   SDL_DisplayMode displayMode;
   if (SDL_GetDesktopDisplayMode(0, &displayMode) != 0) {
@@ -73,7 +51,7 @@ int main(int argc, char *argv[]) {
               "display refresh rate %d, target secs per frame %f", refreshRate,
               targetSecsPerFrame);
 
-  SDL_Window *window = CreateSDLWindow(width, height);
+  SDL_Window *window = CreateSDLWindow(width * 3, height * 3);
   if (window == NULL) {
     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "CreateSDLWindow error: %s",
                  SDL_GetError());
@@ -91,20 +69,50 @@ int main(int argc, char *argv[]) {
   SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
               "renderer created with logical size %dx%d", width, height);
 
-  SDL_Surface *surface = CreateSDLSurface(width, height);
-  if (surface == NULL) {
-    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "CreateSDLSurface error: %s",
-                 SDL_GetError());
-    return EXIT_FAILURE;
-  }
-  SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "surface created with size %dx%d",
-              width, height);
-
   SDL_Texture *texture = CreateSDLTexture(renderer, width, height);
   if (texture == NULL) {
     SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "CreateSDLTexture error: %s",
                  SDL_GetError());
     return EXIT_FAILURE;
+  }
+
+  Uint32 *pixelBuffer = calloc(width * height, sizeof(*pixelBuffer));
+  if (pixelBuffer == NULL) {
+    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                 "failed to calloc pixel buffer %dx%d", width, height);
+    return EXIT_FAILURE;
+  }
+  Uint32 *plasma = calloc(width * height, sizeof(*plasma));
+  if (plasma == NULL) {
+    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION,
+                 "failed to calloc plasma buffer %dx%d", width, height);
+    return EXIT_FAILURE;
+  }
+
+  double halfWidth = width / 2.0;
+  double halfHeight = height / 2.0;
+
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      double color = 128.0 + (128.0 * sin(x / 16.0));
+      color += 128.0 + (128.0 * sin(y / 32.0));
+      color +=
+          128.0 +
+          (128.0 * sin(sqrt((double)((x - halfWidth) * (x - halfWidth) +
+                                     (y - halfHeight) * (y - halfHeight))) /
+                       8.0));
+      color += 128.0 + (128.0 * sin(sqrt((double)(x * x + y * y)) / 8.0));
+
+      int index = Get1DCoordFrom2D(x, y, width);
+      plasma[index] = (Uint32)color / 4;
+    }
+  }
+
+  Uint32 palette[PALETTE_SIZE];
+  for (int x = 0; x < PALETTE_SIZE; x++) {
+    Uint8 r = (int)Minf(128.0 + 128 * sin(M_PI * x / 16.0), 255);
+    Uint8 g = (int)Minf(128.0 + 128 * sin(M_PI * x / 128.0), 255);
+    palette[x] = RGBToUint32(r, g, 0);
   }
 
   double elapsedTime = 0.0;
@@ -119,19 +127,12 @@ int main(int argc, char *argv[]) {
       break;
     }
 
-    elapsedTime += targetSecsPerFrame;
+    elapsedTime += targetSecsPerFrame * 1000.0;
 
     Uint64 drawStartCounter = SDL_GetPerformanceCounter();
-    if (LockSDLSurface(surface) != 0) {
-      SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "LockSDLSurface error: %s",
-                   SDL_GetError());
-      break;
-    }
 
-    ClearPixelsSDLSurface(surface);
-    DrawFrame(surface, elapsedTime);
+    DrawFrame(pixelBuffer, width, height, plasma, palette, elapsedTime);
 
-    SDL_UnlockSurface(surface);
     Uint64 drawEndCounter = SDL_GetPerformanceCounter();
 
     // Manually cap the frame rate
@@ -143,10 +144,10 @@ int main(int argc, char *argv[]) {
 
     Uint64 endCounter = SDL_GetPerformanceCounter();
 
-    SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch);
-    SDL_RenderClear(renderer);
+    SDL_UpdateTexture(texture, NULL, pixelBuffer, width * sizeof(*pixelBuffer));
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
+    SDL_RenderClear(renderer);
 
     double msPerFrame = GetElapsedTimeMs(lastCounter, endCounter);
     double fps = (double)SDL_GetPerformanceFrequency() /
@@ -163,7 +164,8 @@ int main(int argc, char *argv[]) {
     lastCounter = endCounter;
   }
 
-  SDL_FreeSurface(surface);
+  free(plasma);
+  free(pixelBuffer);
   SDL_DestroyTexture(texture);
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
@@ -187,13 +189,8 @@ SDL_Renderer *CreateSDLRenderer(SDL_Window *window, int width, int height) {
   return renderer;
 }
 
-SDL_Surface *CreateSDLSurface(int width, int height) {
-  return SDL_CreateRGBSurfaceWithFormat(0, width, height, 32,
-                                        SDL_PIXELFORMAT_RGBA32);
-}
-
 SDL_Texture *CreateSDLTexture(SDL_Renderer *renderer, int width, int height) {
-  return SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32,
+  return SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888,
                            SDL_TEXTUREACCESS_STREAMING, width, height);
 }
 
@@ -207,42 +204,15 @@ int GetDisplayRefreshRate(SDL_DisplayMode displayMode) {
   return result;
 }
 
-int LockSDLSurface(SDL_Surface *surface) {
-  if (SDL_MUSTLOCK(surface)) {
-    return SDL_LockSurface(surface);
-  }
-
-  return 0;
-}
-
-void SetPixelSDLSurface(SDL_Surface *surface, int x, int y, Uint8 r, Uint8 g,
-                        Uint8 b) {
-  int width = surface->w;
-  int height = surface->h;
-
-  int pixelInBounds = x >= 0 && x < width && y >= 0 && y < height;
-  assert(pixelInBounds);
-
-  if (pixelInBounds) {
-    Uint32 *pixels = (Uint32 *)surface->pixels;
-    int index = (y * surface->pitch / surface->format->BytesPerPixel) + x;
-    pixels[index] = SDL_MapRGBA(surface->format, r, g, b, 255);
-  }
-}
-
-void ClearPixelsSDLSurface(SDL_Surface *surface) {
-  int size = surface->w * surface->h;
-  Uint32 *pixels = (Uint32 *)surface->pixels;
-
-  for (int i = 0; i < size; i++) {
-    pixels[i] = 0;
-  }
-}
-
 double GetElapsedTimeSecs(Uint64 start, Uint64 end) {
   return (double)(end - start) / SDL_GetPerformanceFrequency();
 }
 
 double GetElapsedTimeMs(Uint64 start, Uint64 end) {
   return (double)((end - start) * 1000.0) / SDL_GetPerformanceFrequency();
+}
+
+Uint32 RGBToUint32(Uint8 r, Uint8 g, Uint8 b) {
+  // TODO: Provide mask for little endian vs big endian
+  return (Uint32)((r << 16) + (g << 8) + b);
 }
