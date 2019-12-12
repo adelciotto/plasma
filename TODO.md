@@ -1,6 +1,5 @@
 # TODO
 
-- [ ] Code refactor
 - [ ] Multiple palettes
 - [ ] Implement command line flags to customize the application
 - [ ] Interactivity
