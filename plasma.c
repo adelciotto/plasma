@@ -3,8 +3,11 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #define WINDOW_TITLE "Plasma"
+#define DEFAULT_WIDTH 640
+#define DEFAULT_HEIGHT 480
 #define DEFAULT_REFRESH_RATE 60
 #define PALETTE_SIZE 256
 
@@ -12,11 +15,11 @@
 #define LogInfo(...) SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
 
 typedef enum {
-	RED_GREEN_BLACK_PALETTE,
-	RED_BLACK_BLUE_PALETTE,
-	BLACK_GREEN_BLUE_PALETTE,
-	HSV_HUE_PALETTE,
-	HSV_HUE_LIGHTNESS_PALETTE
+  RED_GREEN_BLACK_PALETTE,
+  RED_BLACK_BLUE_PALETTE,
+  BLACK_GREEN_BLUE_PALETTE,
+  HSV_HUE_PALETTE,
+  HSV_HUE_LIGHTNESS_PALETTE
 } PaletteType;
 
 SDL_DisplayMode displayMode;
@@ -27,10 +30,9 @@ Uint32 *pixelBuffer = NULL;
 Uint32 *plasmaBuffer = NULL;
 Uint32 palette[PALETTE_SIZE];
 
-// TODO: Make these configurable.
-const int width = 640;
-const int height = 480;
-const int fullscreen = 0;
+int width = DEFAULT_WIDTH;
+int height = DEFAULT_HEIGHT;
+int fullscreen = 0;
 const PaletteType paletteType = RED_GREEN_BLACK_PALETTE;
 
 double Min(double value, double min) { return value < min ? value : min; }
@@ -42,40 +44,61 @@ Uint32 RGBToUint32(Uint8 r, Uint8 g, Uint8 b) {
 }
 
 Uint32 HSVToUint32(int h, int s, int v) {
-	double hue = h / 256.0;
-	double saturation = s / 256.0;
-	double value = v / 256.0;
-	double r, g, b;
+  double hue = h / 256.0;
+  double saturation = s / 256.0;
+  double value = v / 256.0;
+  double r, g, b;
 
-	if (saturation == 0) {
-		r = g = b = value;
-	} else {
-		// Bring the hue to a number between 0 to 6. Better for calculations.
-		hue *= 6;
+  if (saturation == 0) {
+    r = g = b = value;
+  } else {
+    // Bring the hue to a number between 0 to 6. Better for calculations.
+    hue *= 6;
 
-		int i = (int)floor(hue);
+    int i = (int)floor(hue);
 
-		// The fractional part of the hue.
-		double f = hue - i;
-		double p = value * (1.0 - saturation);
-		double q = value * (1.0 - (saturation * f));
-		double t = value * (1.0 - (saturation * (1.0 - f)));
+    // The fractional part of the hue.
+    double f = hue - i;
+    double p = value * (1.0 - saturation);
+    double q = value * (1.0 - (saturation * f));
+    double t = value * (1.0 - (saturation * (1.0 - f)));
 
-		switch (i) {
-			case 0: r = value; g = t; b = p; break;
-			case 1: r = q; g = value; b = p; break;
-			case 2: r = p; g = value; b = t; break;
-			case 3: r = p; g = q; b = value; break;
-			case 4: r = t; g = p; b = value; break;
-			case 5: r = value; g = p; b = q; break;
-		}
-	}
+    switch (i) {
+    case 0:
+      r = value;
+      g = t;
+      b = p;
+      break;
+    case 1:
+      r = q;
+      g = value;
+      b = p;
+      break;
+    case 2:
+      r = p;
+      g = value;
+      b = t;
+      break;
+    case 3:
+      r = p;
+      g = q;
+      b = value;
+      break;
+    case 4:
+      r = t;
+      g = p;
+      b = value;
+      break;
+    case 5:
+      r = value;
+      g = p;
+      b = q;
+      break;
+    }
+  }
 
-	return RGBToUint32(
-		(Uint8)(r * 255.0),
-		(Uint8)(g * 255.0),
-		(Uint8)(b * 255.0)
-	);
+  return RGBToUint32((Uint8)(r * 255.0), (Uint8)(g * 255.0),
+                     (Uint8)(b * 255.0));
 }
 
 double GetElapsedTimeSecs(Uint64 start, Uint64 end) {
@@ -170,22 +193,22 @@ void InitHSVHueAndLightnessPalette() {
 }
 
 void InitPalette(void) {
-	switch (paletteType) {
-		case RED_GREEN_BLACK_PALETTE:
-			InitRedGreenBlackPalette();
-			break;
-		case RED_BLACK_BLUE_PALETTE:
-			InitRedBlackBluePalette();
-			break;
-		case BLACK_GREEN_BLUE_PALETTE:
-			InitBlackGreenBluePalette();
-			break;
-		case HSV_HUE_PALETTE:
-			InitHSVHuePalette();
-		case HSV_HUE_LIGHTNESS_PALETTE:
-			InitHSVHueAndLightnessPalette();
-			break;
-	}
+  switch (paletteType) {
+  case RED_GREEN_BLACK_PALETTE:
+    InitRedGreenBlackPalette();
+    break;
+  case RED_BLACK_BLUE_PALETTE:
+    InitRedBlackBluePalette();
+    break;
+  case BLACK_GREEN_BLUE_PALETTE:
+    InitBlackGreenBluePalette();
+    break;
+  case HSV_HUE_PALETTE:
+    InitHSVHuePalette();
+  case HSV_HUE_LIGHTNESS_PALETTE:
+    InitHSVHueAndLightnessPalette();
+    break;
+  }
 }
 
 void InitPlasma(void) {
@@ -230,8 +253,33 @@ void DestroySDL(void) {
 }
 
 int main(int argc, char *argv[]) {
+  char opt;
+  while ((opt = getopt(argc, argv, ":w:h:f")) != -1) {
+    switch (opt) {
+    case 'w':
+      // Obviously not proper use of strtol, but, thats fine
+      // for this simple program.
+      width = strtol(optarg, (char **)NULL, 10);
+      if (width == 0) {
+        fprintf(stderr, "invalid value for w: %s\n", optarg);
+        return EXIT_FAILURE;
+      }
+      break;
+    case 'h':
+      height = strtol(optarg, (char **)NULL, 10);
+      if (height == 0) {
+        fprintf(stderr, "invalid value for h: %s\n", optarg);
+        return EXIT_FAILURE;
+      }
+      break;
+    case 'f':
+      fullscreen = 1;
+      break;
+    }
+  }
+
   if (InitSDL() != 0) {
-    LogError("error initializing SDL, %s", SDL_GetError());
+    fprintf(stderr, "error initializing SDL, %s\n", SDL_GetError());
     return EXIT_FAILURE;
   }
 
