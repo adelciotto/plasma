@@ -62,3 +62,9 @@ Run it:
 ./color_cycling_plasma
 ```
 
+
+## References
+
+- https://en.wikipedia.org/wiki/Plasma_effect
+- https://lodev.org/cgtutor/plasma.html
+- https://www.bidouille.org/prog/plasma
