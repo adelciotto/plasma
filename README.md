@@ -44,7 +44,7 @@ Replace `{{demo_name}}` with any of the following:
 
 ### Color cycling plasma
 
-![color-cycling-plasma](previews/color-cycling-plasma)
+![color-cycling-plasma](previews/color-cycling-plasma-preview.png)
 
 A software rendered Plasma which is precalculated and cycles through a color palette. It is somewhat less dynamic than the other demos, but, runs quite fast at high resolutions by avoiding lots of sin calculations at runtime.
 
