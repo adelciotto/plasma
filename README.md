@@ -62,6 +62,27 @@ Run it:
 ./color_cycling_plasma
 ```
 
+## Demos
+
+### RGB plasma
+
+![rgb-plasma](previews/rgb-plasma-preview.png)
+
+A software rendered Plasma which is calculates the plasma value and the r, g, b components seperately for every pixel, on every frame. It is more dynamic than the other color cycling demo, but, runs quite slow at the moment due to the unoptimised code. The biggest slowdown in the draw loop is the sin functions, which account for approximately 60% of the time spent.
+
+#### Run
+
+Compile the demo:
+
+```sh
+make rgb_plasma
+```
+
+Run it:
+
+```sh
+./rgb_plasma
+```
 
 ## References
 

@@ -1,3 +1,5 @@
 *.dSYM
 *.o
+.DS_Store
 color_cycling_plasma
+rgb_plasma
