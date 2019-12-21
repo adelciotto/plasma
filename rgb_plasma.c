@@ -6,8 +6,9 @@
 #include <unistd.h>
 
 #define WINDOW_TITLE "RGB Plasma"
-#define DEFAULT_WIDTH 640
-#define DEFAULT_HEIGHT 480
+#define DEFAULT_WIDTH 128
+#define DEFAULT_HEIGHT 128
+#define DEFAULT_SCALE 4
 #define DEFAULT_REFRESH_RATE 60
 #define PLASMA_SCALE 20.0
 #define PLASMA_SCALE_HALF PLASMA_SCALE * 0.5
@@ -23,6 +24,7 @@ Uint32 *pixelBuffer = NULL;
 
 int width = DEFAULT_WIDTH;
 int height = DEFAULT_HEIGHT;
+int scale = DEFAULT_SCALE;
 int fullscreen = 0;
 
 double Min(double value, double min) { return value < min ? value : min; }
@@ -59,7 +61,7 @@ int InitSDL(void) {
   }
 
   window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_CENTERED,
-                            SDL_WINDOWPOS_CENTERED, width, height,
+                            SDL_WINDOWPOS_CENTERED, width * scale, height * scale,
                             SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
   if (window == NULL) {
     return -1;
@@ -133,21 +135,27 @@ void DestroySDL(void) {
 
 int main(int argc, char *argv[]) {
   char opt;
-  while ((opt = getopt(argc, argv, ":w:h:f")) != -1) {
+  while ((opt = getopt(argc, argv, ":w:h:s:f")) != -1) {
     switch (opt) {
     case 'w':
       // Obviously not proper use of strtol, but, thats fine
       // for this simple program.
       width = strtol(optarg, (char **)NULL, 10);
       if (width == 0) {
-        fprintf(stderr, "invalid value for w: %s\n", optarg);
+        fprintf(stderr, "invalid value for width: %s\n", optarg);
         return EXIT_FAILURE;
       }
       break;
     case 'h':
       height = strtol(optarg, (char **)NULL, 10);
       if (height == 0) {
-        fprintf(stderr, "invalid value for h: %s\n", optarg);
+        fprintf(stderr, "invalid value for height: %s\n", optarg);
+        return EXIT_FAILURE;
+      }
+    case 's':
+      scale = strtol(optarg, (char **)NULL, 10);
+      if (scale == 0) {
+        fprintf(stderr, "invalid value for scale: %s\n", optarg);
         return EXIT_FAILURE;
       }
       break;
