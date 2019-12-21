@@ -63,7 +63,13 @@ Run it:
 ./color_cycling_plasma
 ```
 
-## Demos
+#### Command line options
+
+| Name          | Option        | Type    | Default Value |
+| ------------- | ------------- | ------- | ------------- |
+| Width         | -w {{value}}  | Integer | 640           |
+| Height        | -h {{value}}  | Integer | 480           |
+| Fullscreen    | -f            | Boolean | False         |
 
 ### RGB plasma
 
@@ -84,6 +90,18 @@ Run it:
 ```sh
 ./rgb_plasma
 ```
+
+#### Command line options
+
+| Name          | Option        | Type    | Default Value |
+| ------------- | ------------- | ------- | ------------- |
+| Width         | -w {{value}}  | Integer | 128           |
+| Height        | -h {{value}}  | Integer | 128           |
+| Scale         | -s {{value}}  | Integer | 4             |
+| Fullscreen    | -f            | Boolean | False         |
+| Interactive   | -i            | Boolean | False         |
+
+Note: Interactive mode will enable some mouse input which effects the plasma.
 
 ## References
 

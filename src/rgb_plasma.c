@@ -26,6 +26,10 @@ int width = DEFAULT_WIDTH;
 int height = DEFAULT_HEIGHT;
 int scale = DEFAULT_SCALE;
 int fullscreen = 0;
+int interactive = 0;
+
+double mouseX = -0.5;
+double mouseY = -0.5;
 
 double Min(double value, double min) { return value < min ? value : min; }
 
@@ -60,9 +64,9 @@ int InitSDL(void) {
     return -1;
   }
 
-  window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_CENTERED,
-                            SDL_WINDOWPOS_CENTERED, width * scale, height * scale,
-                            SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+  window = SDL_CreateWindow(
+      WINDOW_TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+      width * scale, height * scale, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
   if (window == NULL) {
     return -1;
   }
@@ -72,7 +76,9 @@ int InitSDL(void) {
     SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
   }
 
-  SDL_ShowCursor(SDL_DISABLE);
+  if (!interactive) {
+    SDL_ShowCursor(SDL_DISABLE);
+  }
 
   renderer = SDL_CreateRenderer(
       window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -93,9 +99,7 @@ int InitSDL(void) {
 }
 
 void DrawFrame(double elapsedTimeInSecs) {
-  double t = elapsedTimeInSecs * 2.0;
-  double sinA = sin(t * 0.33);
-  double cosA = cos(t * 0.5);
+  double t = elapsedTimeInSecs;
 
   for (int yi = 0; yi < height; yi++) {
     double y =
@@ -105,17 +109,27 @@ void DrawFrame(double elapsedTimeInSecs) {
       double x =
           (0.5 + xi / (double)width - 1.0) * PLASMA_SCALE - PLASMA_SCALE_HALF;
 
-      double val = sin(x + t);
-      val += sin((y + t) * 0.5);
+      double val = sin(y + t);
+      val += sin((x + t) * 0.5);
       val += sin((x + y + t) * 0.5);
       double cx = x + PLASMA_SCALE_HALF * (sin(t * 0.33));
       double cy = y + PLASMA_SCALE_HALF * (cos(t * 0.5));
       val += sin(sqrt(cx * cx + cy * cy + 1.0) + t);
       val *= 0.5;
 
-      double r = sin(val * M_PI) * 0.5 + 0.5;
-      double g = sin(val * M_PI + 2.0 * M_PI * 0.33) * 0.5 + 0.5;
-      double b = sin(val * M_PI + 4.0 * M_PI * 0.33) * 0.5 + 0.5;
+      double r, g, b;
+      if (interactive) {
+        double dist =
+            sqrt((x - mouseX) * (x - mouseX) + (y - mouseY) * (y - mouseY));
+        r = sin((val + sin(dist * 2 + t)) * M_PI) * 0.5 + 0.5;
+        g = sin(val * M_PI + 2.0 * M_PI * 0.33) * 0.5 + 0.5;
+        b = sin((val + cos(dist + t * 0.33)) * M_PI + 4.0 * M_PI * 0.33) * 0.5 +
+            0.5;
+      } else {
+        r = sin(val * M_PI) * 0.5 + 0.5;
+        g = sin(val * M_PI + 2.0 * M_PI * 0.33) * 0.5 + 0.5;
+        b = sin(val * M_PI + 4.0 * M_PI * 0.33) * 0.5 + 0.5;
+      }
 
       Uint8 ri = (Uint8)Min(r * 255, 255);
       Uint8 gi = (Uint8)Min(g * 255, 255);
@@ -135,7 +149,7 @@ void DestroySDL(void) {
 
 int main(int argc, char *argv[]) {
   char opt;
-  while ((opt = getopt(argc, argv, ":w:h:s:f")) != -1) {
+  while ((opt = getopt(argc, argv, ":w:h:s:fi")) != -1) {
     switch (opt) {
     case 'w':
       // Obviously not proper use of strtol, but, thats fine
@@ -161,6 +175,9 @@ int main(int argc, char *argv[]) {
       break;
     case 'f':
       fullscreen = 1;
+      break;
+    case 'i':
+      interactive = 1;
       break;
     }
   }
@@ -198,6 +215,13 @@ int main(int argc, char *argv[]) {
         isRunning = 0;
       }
       break;
+    case SDL_MOUSEMOTION: {
+      int x, y;
+      SDL_GetMouseState(&x, &y);
+      mouseX = 0.5 + x / (double)width - 1.0;
+      mouseY = 0.5 + y / (double)height - 1.0;
+      break;
+    }
     }
 
     elapsedTimeMs += targetSecsPerFrame;
