@@ -4,18 +4,18 @@ Some different C implementations of the classic [plasma](https://en.wikipedia.or
 
 ## Setup
 
-All the demos require the SDL2 library.
+All the demos require the SDL2 library, and the OpenGL demos require GLEW.
 
 ### OSX
 
 ```sh
-brew install sdl2
+brew install sdl2 glew
 ```
 
 ### Linux
 
 ```sh
-sudo apt-get install libsdl2-dev
+sudo apt-get install libsdl2-dev libglew-dev
 ```
 
 Or, if on another distribution, use the package manager available.
@@ -40,6 +40,7 @@ Replace `{{demo_name}}` with any of the following:
 
 * `color_cycling_plasma`
 * `rgb_plasma`
+* `gl_rgb_plasma`
 
 ## Demos
 
@@ -102,6 +103,32 @@ Run it:
 | Interactive   | -i            | Boolean | False         |
 
 Note: Interactive mode will enable some mouse input which effects the plasma.
+
+### GL RGB plasma
+
+An OpenGL accelerated version of the Plasma which uses a fragment shader to implement the effect. Runs at 60fps in high definition (1080p).
+
+#### Run
+
+Compile the demo:
+
+```sh
+make gl_rgb_plasma
+```
+
+Run it:
+
+```sh
+./gl_rgb_plasma
+```
+
+#### Command line options
+
+| Name          | Option        | Type    | Default Value |
+| ------------- | ------------- | ------- | ------------- |
+| Width         | -w {{value}}  | Integer | 640           |
+| Height        | -h {{value}}  | Integer | 480           |
+| Fullscreen    | -f            | Boolean | False         |
 
 ## References
 
