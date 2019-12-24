@@ -22,5 +22,6 @@ void main() {
 		sin(val * PI + 2.0 * PI * 0.33),
 		sin(val * PI + 4.0 * PI * 0.33)
 	);
-  gl_FragColor = vec4(finalColor*0.5 + 0.5, 1.0);
+
+	gl_FragColor = vec4(finalColor*0.5 + 0.5, 1.0);
 }

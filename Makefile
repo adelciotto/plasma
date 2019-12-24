@@ -25,6 +25,10 @@ src/rgb_plasma.o: src/rgb_plasma.c
 src/gl_rgb_plasma.o: src/gl_rgb_plasma.c
 	$(CC) -c src/gl_rgb_plasma.c -o src/gl_rgb_plasma.o
 
+.PHONY: format
+format:
+	clang-format --verbose -i -style=file src/*.c
+
 .PHONY: clean
 clean:
 	rm -f color_cycling_plasma rgb_plasma gl_rgb_plasma
