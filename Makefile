@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -Wall -Wextra -Werror -std=c99 -pedantic -O3
+CFLAGS := -Wall -Wextra -Werror -std=c11 -pedantic -O3
 LDFLAGS := -lm -lSDL2
 GL_LDFLAGS := -lGL -lGLEW -lGLU
 INCLUDES := $(pkg-config --cflags --libs sdl2)
