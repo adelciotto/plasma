@@ -160,7 +160,7 @@ char *ReadFile(const char *filepath) {
     }
 
     size_t result = fread(buffer, 1, fileSize, file);
-    if (result != fileSize) {
+    if ((long)result != fileSize) {
         return NULL;
     }
 

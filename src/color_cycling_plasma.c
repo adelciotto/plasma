@@ -10,6 +10,7 @@
 #define DEFAULT_HEIGHT 480
 #define DEFAULT_REFRESH_RATE 60
 #define PALETTE_SIZE 256
+#define PI 3.1415926535897932384626433832795
 
 #define LogError(...) SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
 #define LogInfo(...) SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
@@ -97,8 +98,8 @@ int InitSDL(void) {
 
 void InitPalette(void) {
     for (int x = 0; x < PALETTE_SIZE; x++) {
-        Uint8 r = (Uint8)Min(128.0 + 128 * sin(M_PI * x / 32.0), 255);
-        Uint8 b = (Uint8)Min(128.0 + 128 * sin(M_PI * x / 64.0), 255);
+        Uint8 r = (Uint8)Min(128.0 + 128 * sin(PI * x / 32.0), 255);
+        Uint8 b = (Uint8)Min(128.0 + 128 * sin(PI * x / 64.0), 255);
         palette[x] = RGBToUint32(r, 0, b);
     }
 }

@@ -10,6 +10,7 @@
 #define DEFAULT_HEIGHT 128
 #define DEFAULT_SCALE 4
 #define DEFAULT_REFRESH_RATE 60
+#define PI 3.1415926535897932384626433832795
 #define PLASMA_SCALE 20.0
 #define PLASMA_SCALE_HALF PLASMA_SCALE * 0.5
 
@@ -125,16 +126,16 @@ void DrawFrame(double elapsedTimeInSecs) {
             if (interactive) {
                 double dist = sqrt((x - mouseX) * (x - mouseX) +
                                    (y - mouseY) * (y - mouseY));
-                r = sin((val + sin(dist * 2 + t)) * M_PI) * 0.5 + 0.5;
-                g = sin(val * M_PI + 2.0 * M_PI * 0.33) * 0.5 + 0.5;
-                b = sin((val + cos(dist + t * 0.33)) * M_PI +
-                        4.0 * M_PI * 0.33) *
+                r = sin((val + sin(dist * 2 + t)) * PI) * 0.5 + 0.5;
+                g = sin(val * PI + 2.0 * PI * 0.33) * 0.5 + 0.5;
+                b = sin((val + cos(dist + t * 0.33)) * PI +
+                        4.0 * PI * 0.33) *
                         0.5 +
                     0.5;
             } else {
-                r = sin(val * M_PI) * 0.5 + 0.5;
-                g = sin(val * M_PI + 2.0 * M_PI * 0.33) * 0.5 + 0.5;
-                b = sin(val * M_PI + 4.0 * M_PI * 0.33) * 0.5 + 0.5;
+                r = sin(val * PI) * 0.5 + 0.5;
+                g = sin(val * PI + 2.0 * PI * 0.33) * 0.5 + 0.5;
+                b = sin(val * PI + 4.0 * PI * 0.33) * 0.5 + 0.5;
             }
 
             Uint8 ri = (Uint8)Min(r * 255, 255);
@@ -173,6 +174,7 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "invalid value for height: %s\n", optarg);
                 return EXIT_FAILURE;
             }
+			break;
         case 's':
             scale = strtol(optarg, (char **)NULL, 10);
             if (scale == 0) {
