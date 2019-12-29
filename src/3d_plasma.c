@@ -204,26 +204,29 @@ int InitGL(void) {
     gProgramId = glCreateProgram();
 
     GLuint vertexShader;
-    const char *vertexShaderSource = ReadFile(VERTEX_SHADER_PATH);
+    char *vertexShaderSource = ReadFile(VERTEX_SHADER_PATH);
     if (vertexShaderSource == NULL) {
         LogError("could not read file %s", VERTEX_SHADER_PATH);
     }
-    if (compileShader(GL_VERTEX_SHADER, &vertexShaderSource, &vertexShader) !=
+    if (compileShader(GL_VERTEX_SHADER, (const char **)&vertexShaderSource, &vertexShader) !=
         GL_TRUE) {
         LogShaderError(vertexShader);
         return -1;
     }
 
     GLuint fragmentShader;
-    const char *fragmentShaderSource = ReadFile(FRAGMENT_SHADER_PATH);
+    char *fragmentShaderSource = ReadFile(FRAGMENT_SHADER_PATH);
     if (fragmentShaderSource == NULL) {
         LogError("could not read file %s", FRAGMENT_SHADER_PATH);
     }
-    if (compileShader(GL_FRAGMENT_SHADER, &fragmentShaderSource,
+    if (compileShader(GL_FRAGMENT_SHADER, (const char **)&fragmentShaderSource,
                       &fragmentShader) != GL_TRUE) {
         LogShaderError(fragmentShader);
         return -1;
     }
+
+	free(fragmentShaderSource);
+	free(vertexShaderSource);
 
     glAttachShader(gProgramId, vertexShader);
     glAttachShader(gProgramId, fragmentShader);
