@@ -1,3 +1,4 @@
+#include "glmath.h"
 #include <GL/glew.h>
 #include <GL/glu.h>
 #include <SDL2/SDL.h>
@@ -12,8 +13,9 @@
 #define DEFAULT_WIDTH 640
 #define DEFAULT_HEIGHT 480
 #define DEFAULT_REFRESH_RATE 60
-#define VERTEX_SHADER_PATH "src/shaders/gl_rgb_plasma.vert"
-#define FRAGMENT_SHADER_PATH "src/shaders/gl_rgb_plasma.frag"
+#define PI 3.1415926535897932384626433832795
+#define VERTEX_SHADER_PATH "src/shaders/3d_plasma.vert"
+#define FRAGMENT_SHADER_PATH "src/shaders/3d_plasma.frag"
 
 #define LogError(...) SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
 #define LogInfo(...) SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
@@ -25,14 +27,22 @@ SDL_GLContext *gContext = NULL;
 GLuint gProgramId = 0;
 GLuint gVAO = 0;
 GLuint gVBO = 0;
-GLuint gEBO = 0;
 GLint gUniformTimeLocation = -1;
-GLint gUniformResolutionLocation = -1;
 GLint gUniformScaleLocation = -1;
+GLint gUniformModelLocation = -1;
+GLint gUniformViewLocation = -1;
+GLint gUniformProjectionLocation = -1;
+GLint gUniformViewPositionLocation = -1;
+Mat4 gView = MAT4_IDENTITY_INIT;
+Mat4 gProj = MAT4_ZERO_INIT;
 
 int gWidth = DEFAULT_WIDTH;
 int gHeight = DEFAULT_HEIGHT;
 int gFullscreen = 0;
+
+double Min(double value, double min) {
+    return value > min ? value : min;
+}
 
 double GetElapsedTimeSecs(Uint64 start, Uint64 end) {
     return (double)(end - start) / SDL_GetPerformanceFrequency();
@@ -59,6 +69,9 @@ int InitSDL(void) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
                         SDL_GL_CONTEXT_PROFILE_CORE);
+
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
     if (SDL_GetDesktopDisplayMode(0, &gDisplayMode) != 0) {
         return -1;
@@ -236,18 +249,63 @@ int InitGL(void) {
         LogError("could not get uniform location for uScale");
         return -1;
     }
-    gUniformResolutionLocation =
-        glGetUniformLocation(gProgramId, "uResolution");
-    if (gUniformResolutionLocation == -1) {
-        LogError("could not get uniform location for uResolution");
+    gUniformModelLocation = glGetUniformLocation(gProgramId, "uModel");
+    if (gUniformModelLocation == -1) {
+        LogError("could not get uniform location for uModel");
+        return -1;
+    }
+    gUniformViewLocation = glGetUniformLocation(gProgramId, "uView");
+    if (gUniformViewLocation == -1) {
+        LogError("could not get uniform location for uView");
+        return -1;
+    }
+    gUniformProjectionLocation =
+        glGetUniformLocation(gProgramId, "uProjection");
+    if (gUniformProjectionLocation == -1) {
+        LogError("could not get uniform location for uProjection");
+        return -1;
+    }
+    gUniformViewPositionLocation =
+        glGetUniformLocation(gProgramId, "uViewPosition");
+    if (gUniformViewPositionLocation == -1) {
+        LogError("could not get uniform location for uViewPosition");
         return -1;
     }
 
     glViewport(0, 0, gWidth, gHeight);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE);
 
-    GLfloat vertexData[] = {-1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f};
-    GLuint elements[] = {0, 1, 2, 2, 3, 0};
+    GLfloat vertexData[] = {
+        -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f, 0.5f,  -0.5f, -0.5f,
+        0.0f,  0.0f,  -1.0f, 0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f,
+        0.5f,  0.5f,  -0.5f, 0.0f,  0.0f,  -1.0f, -0.5f, 0.5f,  -0.5f,
+        0.0f,  0.0f,  -1.0f, -0.5f, -0.5f, -0.5f, 0.0f,  0.0f,  -1.0f,
+
+        -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,  0.5f,  -0.5f, 0.5f,
+        0.0f,  0.0f,  1.0f,  0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  -0.5f, 0.5f,  0.5f,
+        0.0f,  0.0f,  1.0f,  -0.5f, -0.5f, 0.5f,  0.0f,  0.0f,  1.0f,
+
+        -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,  -0.5f, 0.5f,  -0.5f,
+        -1.0f, 0.0f,  0.0f,  -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f,  0.0f,  -0.5f, -0.5f, 0.5f,
+        -1.0f, 0.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  -1.0f, 0.0f,  0.0f,
+
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.5f,  0.5f,  -0.5f,
+        1.0f,  0.0f,  0.0f,  0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,
+        0.5f,  -0.5f, -0.5f, 1.0f,  0.0f,  0.0f,  0.5f,  -0.5f, 0.5f,
+        1.0f,  0.0f,  0.0f,  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+        -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,  0.5f,  -0.5f, -0.5f,
+        0.0f,  -1.0f, 0.0f,  0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,
+        0.5f,  -0.5f, 0.5f,  0.0f,  -1.0f, 0.0f,  -0.5f, -0.5f, 0.5f,
+        0.0f,  -1.0f, 0.0f,  -0.5f, -0.5f, -0.5f, 0.0f,  -1.0f, 0.0f,
+
+        -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.5f,  0.5f,  -0.5f,
+        0.0f,  1.0f,  0.0f,  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  -0.5f, 0.5f,  0.5f,
+        0.0f,  1.0f,  0.0f,  -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f};
 
     glGenVertexArrays(1, &gVAO);
     glBindVertexArray(gVAO);
@@ -257,34 +315,60 @@ int InitGL(void) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData,
                  GL_STATIC_DRAW);
 
-    glGenBuffers(1, &gEBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements,
-                 GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float),
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
                           (void *)0);
     glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+                          (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    Mat4Perspective(0.785398, (float)gWidth / (float)gHeight, 1.0f, 10.0f,
+                    gProj);
 
     return 0;
 }
 
 void DrawFrame(double elapsedTimeSecs) {
-    glClear(GL_COLOR_BUFFER_BIT);
+    float camX = 0.0f;
+    float camY = 0.0f;
+    float camZ = 1.5f + Min(sinf(elapsedTimeSecs * PI / 4.0) +
+                                cosf(elapsedTimeSecs * 0.5f * PI / 4.0) +
+                                sinf(elapsedTimeSecs * 0.2f * PI / 6.0),
+                            0.5);
+
+    Mat4LookAt((Vec3){camX, camY, camZ}, (Vec3){0.0f, 0.0f, 0.0f},
+               (Vec3){0.0f, 1.0f, 0.0f}, gView);
+
+    Mat4 identity = MAT4_IDENTITY_INIT;
+    Mat4 transform = MAT4_IDENTITY_INIT;
+    float t = elapsedTimeSecs * 0.5;
+    Mat4RotateZ(identity, transform, sinf(t * PI / 2.0) + sinf(t * PI / 6.0));
+
+    Mat4 out;
+    Mat4RotateX(transform, out, cosf(t * PI / 2.0));
+
+    Mat4 outA;
+    Mat4RotateY(out, outA, sinf(t * PI / 4.0) + cosf(t * PI / 2.0));
+
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(gProgramId);
 
+    glUniformMatrix4fv(gUniformModelLocation, 1, GL_FALSE, outA);
+    glUniformMatrix4fv(gUniformViewLocation, 1, GL_FALSE, gView);
+    glUniformMatrix4fv(gUniformProjectionLocation, 1, GL_FALSE, gProj);
+    glUniform3f(gUniformViewPositionLocation, camX, camY, camZ);
     glUniform1f(gUniformScaleLocation, 20.0f);
-    glUniform2i(gUniformResolutionLocation, gWidth, gHeight);
     glUniform1f(gUniformTimeLocation, elapsedTimeSecs);
 
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
 void DestroyGL(void) {
-    glDeleteBuffers(1, &gEBO);
-    glDeleteBuffers(1, &gVBO);
     glDeleteVertexArrays(1, &gVAO);
+    glDeleteBuffers(1, &gVBO);
     glDeleteProgram(gProgramId);
 }
 

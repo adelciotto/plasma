@@ -27,8 +27,8 @@ int width = DEFAULT_WIDTH;
 int height = DEFAULT_HEIGHT;
 int fullscreen = 0;
 
-double Min(double value, double min) {
-    return value < min ? value : min;
+double Max(double value, double max) {
+    return value < max ? value : max;
 }
 
 int Get1DArrayIndex(int x, int y, int width) {
@@ -98,8 +98,8 @@ int InitSDL(void) {
 
 void InitPalette(void) {
     for (int x = 0; x < PALETTE_SIZE; x++) {
-        Uint8 r = (Uint8)Min(128.0 + 128 * sin(PI * x / 32.0), 255);
-        Uint8 b = (Uint8)Min(128.0 + 128 * sin(PI * x / 64.0), 255);
+        Uint8 r = (Uint8)Max(128.0 + 128 * sin(PI * x / 32.0), 255);
+        Uint8 b = (Uint8)Max(128.0 + 128 * sin(PI * x / 64.0), 255);
         palette[x] = RGBToUint32(r, 0, b);
     }
 }
@@ -219,9 +219,7 @@ int main(int argc, char *argv[]) {
 
         elapsedTimeMs += targetSecsPerFrame * 1000.0;
 
-        Uint64 drawStartCounter = SDL_GetPerformanceCounter();
         DrawFrame(elapsedTimeMs);
-        Uint64 drawEndCounter = SDL_GetPerformanceCounter();
 
         // Manually cap the frame rate
         while (GetElapsedTimeSecs(lastCounter, SDL_GetPerformanceCounter()) <
@@ -241,12 +239,10 @@ int main(int argc, char *argv[]) {
         double msPerFrame = GetElapsedTimeMs(lastCounter, endCounter);
         double fps = (double)SDL_GetPerformanceFrequency() /
                      (double)(endCounter - lastCounter);
-        double msPerDraw = GetElapsedTimeMs(drawStartCounter, drawEndCounter);
 
         if (GetElapsedTimeMs(metricsPrintCounter, SDL_GetPerformanceCounter()) >
             1000.0) {
-            printf("ms/f: %f, fps: %f, draw-ms/f: %f\r", msPerFrame, fps,
-                   msPerDraw);
+            printf("ms/f: %f, fps: %f\r", msPerFrame, fps);
             fflush(stdout);
             metricsPrintCounter = SDL_GetPerformanceCounter();
         }

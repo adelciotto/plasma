@@ -32,8 +32,8 @@ int interactive = 0;
 double mouseX = -0.5;
 double mouseY = -0.5;
 
-double Min(double value, double min) {
-    return value < min ? value : min;
+double Max(double value, double max) {
+    return value < max ? value : max;
 }
 
 int Get1DArrayIndex(int x, int y, int width) {
@@ -128,8 +128,7 @@ void DrawFrame(double elapsedTimeInSecs) {
                                    (y - mouseY) * (y - mouseY));
                 r = sin((val + sin(dist * 2 + t)) * PI) * 0.5 + 0.5;
                 g = sin(val * PI + 2.0 * PI * 0.33) * 0.5 + 0.5;
-                b = sin((val + cos(dist + t * 0.33)) * PI +
-                        4.0 * PI * 0.33) *
+                b = sin((val + cos(dist + t * 0.33)) * PI + 4.0 * PI * 0.33) *
                         0.5 +
                     0.5;
             } else {
@@ -138,9 +137,9 @@ void DrawFrame(double elapsedTimeInSecs) {
                 b = sin(val * PI + 4.0 * PI * 0.33) * 0.5 + 0.5;
             }
 
-            Uint8 ri = (Uint8)Min(r * 255, 255);
-            Uint8 gi = (Uint8)Min(g * 255, 255);
-            Uint8 bi = (Uint8)Min(b * 255, 255);
+            Uint8 ri = (Uint8)Max(r * 255, 255);
+            Uint8 gi = (Uint8)Max(g * 255, 255);
+            Uint8 bi = (Uint8)Max(b * 255, 255);
 
             pixelBuffer[Get1DArrayIndex(xi, yi, width)] =
                 RGBToUint32(ri, gi, bi);
@@ -174,7 +173,7 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "invalid value for height: %s\n", optarg);
                 return EXIT_FAILURE;
             }
-			break;
+            break;
         case 's':
             scale = strtol(optarg, (char **)NULL, 10);
             if (scale == 0) {
@@ -235,9 +234,7 @@ int main(int argc, char *argv[]) {
 
         elapsedTimeMs += targetSecsPerFrame;
 
-        Uint64 drawStartCounter = SDL_GetPerformanceCounter();
         DrawFrame(elapsedTimeMs);
-        Uint64 drawEndCounter = SDL_GetPerformanceCounter();
 
         // Manually cap the frame rate
         while (GetElapsedTimeSecs(lastCounter, SDL_GetPerformanceCounter()) <
@@ -257,12 +254,10 @@ int main(int argc, char *argv[]) {
         double msPerFrame = GetElapsedTimeMs(lastCounter, endCounter);
         double fps = (double)SDL_GetPerformanceFrequency() /
                      (double)(endCounter - lastCounter);
-        double msPerDraw = GetElapsedTimeMs(drawStartCounter, drawEndCounter);
 
         if (GetElapsedTimeMs(metricsPrintCounter, SDL_GetPerformanceCounter()) >
             1000.0) {
-            printf("ms/f: %f, fps: %f, draw-ms/f: %f\r", msPerFrame, fps,
-                   msPerDraw);
+            printf("ms/f: %f, fps: %f\r", msPerFrame, fps);
             fflush(stdout);
             metricsPrintCounter = SDL_GetPerformanceCounter();
         }

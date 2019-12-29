@@ -41,6 +41,7 @@ Replace `{{demo_name}}` with any of the following:
 * `color_cycling_plasma`
 * `rgb_plasma`
 * `gl_rgb_plasma`
+* `3d_plasma`
 
 ## Demos
 
@@ -120,6 +121,34 @@ Run it:
 
 ```sh
 ./gl_rgb_plasma
+```
+
+#### Command line options
+
+| Name          | Option        | Type    | Default Value |
+| ------------- | ------------- | ------- | ------------- |
+| Width         | -w {{value}}  | Integer | 640           |
+| Height        | -h {{value}}  | Integer | 480           |
+| Fullscreen    | -f            | Boolean | False         |
+
+### 3D plasma
+
+![3d-plasma](previews/3d-plasma-preview.png)
+
+An OpenGL accelerated version of the Plasma which draws a 3D cube with each face having a different coloured plasma. Inspired by the plasma cube from the [Second Reality](https://www.youtube.com/watch?v=iw17c70uJes) demo by [Future Crew](https://en.wikipedia.org/wiki/Future_Crew).
+
+#### Run
+
+Compile the demo:
+
+```sh
+make 3d_plasma
+```
+
+Run it:
+
+```sh
+./3d_plasma
 ```
 
 #### Command line options
