@@ -1,9 +1,21 @@
-CC = gcc
-CFLAGS = -Wall -Wextra -Werror -std=c11 -pedantic -O3
-LDFLAGS = -lm $(shell pkg-config --libs sdl2)
-GL_LDFLAGS = $(shell pkg-config --libs gl glu glew)
-INCLUDES = $(shell pkg-config --cflags sdl2)
-GL_INCLUDES = $(shell pkg-config --cflags gl glu glew)
+CC := gcc
+CFLAGS := -Wall -Wextra -Werror -std=c11 -pedantic -O3
+LDFLAGS := -lm $(shell pkg-config --libs sdl2)
+INCLUDES := $(shell pkg-config --cflags sdl2)
+
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S), Linux)
+	GL_LDFLAGS := $(shell pkg-config --libs gl glew)
+	GL_INCLUDES := $(shell pkg-config --cflags gl glew)
+endif
+
+ifeq ($(UNAME_S), Darwin)
+	CC := clang
+	GL_LDFLAGS := $(shell pkg-config --libs glew) -framework OpenGL
+	GL_INCLUDES := $(shell pkg-config --cflags glew)
+endif
+
 
 .PHONY: default
 default: color_cycling_plasma rgb_plasma gl_rgb_plasma 3d_plasma
@@ -26,6 +38,6 @@ format:
 
 .PHONY: clean
 clean:
-	rm -f color_cycling_plasma rgb_plasma gl_rgb_plasma
+	rm -f color_cycling_plasma rgb_plasma gl_rgb_plasma 3d_plasma
 	rm -f **/*.o
 	rm -rf *.dSYM

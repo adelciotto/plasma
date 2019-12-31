@@ -21,13 +21,13 @@
 typedef float Vec3[3];
 typedef float Mat4[16];
 
-inline void Vec3Sub(Vec3 lhs, Vec3 rhs, Vec3 out) {
+static inline void Vec3Sub(Vec3 lhs, Vec3 rhs, Vec3 out) {
     out[0] = lhs[0] - rhs[0];
     out[1] = lhs[1] - rhs[1];
     out[2] = lhs[2] - rhs[2];
 }
 
-inline void Vec3Norm(Vec3 out) {
+static inline void Vec3Norm(Vec3 out) {
     float length = sqrtf(out[0] * out[0] + out[1] * out[1] + out[2] * out[2]);
 
     out[0] /= length;
@@ -35,22 +35,22 @@ inline void Vec3Norm(Vec3 out) {
     out[2] /= length;
 }
 
-inline void Vec3Cross(Vec3 lhs, Vec3 rhs, Vec3 out) {
+static inline void Vec3Cross(Vec3 lhs, Vec3 rhs, Vec3 out) {
     out[0] = lhs[1] * rhs[2] - lhs[2] * rhs[1];
     out[1] = lhs[2] * rhs[0] - lhs[0] * rhs[2];
     out[2] = lhs[0] * rhs[1] - lhs[1] * rhs[0];
 }
 
-inline void Vec3CrossNorm(Vec3 lhs, Vec3 rhs, Vec3 out) {
+static inline void Vec3CrossNorm(Vec3 lhs, Vec3 rhs, Vec3 out) {
     Vec3Cross(lhs, rhs, out);
     Vec3Norm(out);
 }
 
-inline float Vec3Dot(Vec3 lhs, Vec3 rhs) {
+static inline float Vec3Dot(Vec3 lhs, Vec3 rhs) {
     return lhs[0] * rhs[0] + lhs[1] * rhs[1] + lhs[2] * rhs[2];
 }
 
-inline void Mat4Mul(Mat4 lhs, Mat4 rhs, Mat4 out) {
+static inline void Mat4Mul(Mat4 lhs, Mat4 rhs, Mat4 out) {
     out[0] =
         lhs[0] * rhs[0] + lhs[1] * rhs[4] + lhs[2] * rhs[8] + lhs[3] * rhs[12];
     out[1] =
@@ -88,7 +88,7 @@ inline void Mat4Mul(Mat4 lhs, Mat4 rhs, Mat4 out) {
               lhs[15] * rhs[15];
 }
 
-inline void Mat4RotateZ(Mat4 in, Mat4 out, float angle) {
+static inline void Mat4RotateZ(Mat4 in, Mat4 out, float angle) {
     Mat4 transform = MAT4_IDENTITY_INIT;
 
     float c, s;
@@ -103,7 +103,7 @@ inline void Mat4RotateZ(Mat4 in, Mat4 out, float angle) {
     Mat4Mul(in, transform, out);
 }
 
-inline void Mat4RotateX(Mat4 in, Mat4 out, float angle) {
+static inline void Mat4RotateX(Mat4 in, Mat4 out, float angle) {
     Mat4 transform = MAT4_IDENTITY_INIT;
 
     float c, s;
@@ -118,7 +118,7 @@ inline void Mat4RotateX(Mat4 in, Mat4 out, float angle) {
     Mat4Mul(in, transform, out);
 }
 
-inline void Mat4RotateY(Mat4 in, Mat4 out, float angle) {
+static inline void Mat4RotateY(Mat4 in, Mat4 out, float angle) {
     Mat4 transform = MAT4_IDENTITY_INIT;
 
     float c, s;
@@ -133,7 +133,7 @@ inline void Mat4RotateY(Mat4 in, Mat4 out, float angle) {
     Mat4Mul(in, transform, out);
 }
 
-inline void Mat4LookAt(Vec3 eye, Vec3 center, Vec3 up, Mat4 out) {
+static inline void Mat4LookAt(Vec3 eye, Vec3 center, Vec3 up, Mat4 out) {
     Vec3 f, u, s;
 
     Vec3Sub(center, eye, f);
@@ -158,7 +158,7 @@ inline void Mat4LookAt(Vec3 eye, Vec3 center, Vec3 up, Mat4 out) {
     out[15] = 1.0f;
 }
 
-inline void Mat4Perspective(float fovy, float aspect, float nearVal,
+static inline void Mat4Perspective(float fovy, float aspect, float nearVal,
                             float farVal, Mat4 out) {
     float f, fn;
 
