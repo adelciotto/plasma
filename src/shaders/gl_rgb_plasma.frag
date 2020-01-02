@@ -4,6 +4,8 @@ uniform float uTime;
 uniform float uScale;
 uniform ivec2 uResolution;
 
+out vec4 fragColor;
+
 const float PI = 3.1415926535897932384626433832795;
 
 void main() {
@@ -23,5 +25,5 @@ void main() {
 		sin(val * PI + 4.0 * PI * 0.33)
 	);
 
-	gl_FragColor = vec4(finalColor*0.5 + 0.5, 1.0);
+	fragColor = vec4(finalColor*0.5 + 0.5, 1.0);
 }

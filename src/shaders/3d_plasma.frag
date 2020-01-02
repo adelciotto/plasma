@@ -8,6 +8,8 @@ uniform float uTime;
 uniform float uScale;
 uniform vec3 uViewPosition;
 
+out vec4 fragColor;
+
 const float PI = 3.1415926535897932384626433832795;
 
 vec3 plasma(vec2 coords) {
@@ -63,5 +65,5 @@ void main() {
 	vec3 specularColor = specularStrength * spec * lightColor;
 
 	vec3 result = (ambientColor + diffuseColor + specularColor) * objectColor;
-	gl_FragColor = vec4(result, 1.0);
+	fragColor = vec4(result, 1.0);
 }
