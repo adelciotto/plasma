@@ -76,7 +76,6 @@ int InitSDL(void) {
         return -1;
     }
 
-    glewExperimental = GL_TRUE;
     GLenum glewError = glewInit();
     if (glewError != GLEW_OK) {
         LogError("error initializing GLEW! %s", glewGetErrorString(glewError));
