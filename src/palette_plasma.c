@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define WINDOW_TITLE "Color Cycling Plasma"
+#define WINDOW_TITLE "Palette Plasma"
 #define DEFAULT_WIDTH 640
 #define DEFAULT_HEIGHT 480
 #define DEFAULT_REFRESH_RATE 60

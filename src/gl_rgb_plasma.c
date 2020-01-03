@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define WINDOW_TITLE "RGB Plasma GL"
+#define WINDOW_TITLE "GL RGB Plasma"
 #define DEFAULT_WIDTH 640
 #define DEFAULT_HEIGHT 480
 #define DEFAULT_REFRESH_RATE 60
@@ -190,12 +190,12 @@ int InitGL(void) {
     gProgramId = glCreateProgram();
 
     GLuint vertexShader;
-	char *vertexShaderSource = ReadFile(VERTEX_SHADER_PATH);
+    char *vertexShaderSource = ReadFile(VERTEX_SHADER_PATH);
     if (vertexShaderSource == NULL) {
         LogError("could not read file %s", VERTEX_SHADER_PATH);
     }
-    if (compileShader(GL_VERTEX_SHADER, (const char **)&vertexShaderSource, &vertexShader) !=
-        GL_TRUE) {
+    if (compileShader(GL_VERTEX_SHADER, (const char **)&vertexShaderSource,
+                      &vertexShader) != GL_TRUE) {
         LogShaderError(vertexShader);
         return -1;
     }
@@ -211,8 +211,8 @@ int InitGL(void) {
         return -1;
     }
 
-	free(fragmentShaderSource);
-	free(vertexShaderSource);
+    free(fragmentShaderSource);
+    free(vertexShaderSource);
 
     glAttachShader(gProgramId, vertexShader);
     glAttachShader(gProgramId, fragmentShader);

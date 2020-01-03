@@ -1,7 +1,7 @@
 *.dSYM
 *.o
 .DS_Store
-color_cycling_plasma
+palette_plasma
 rgb_plasma
 gl_rgb_plasma
-3d_plasma
+cube_plasma

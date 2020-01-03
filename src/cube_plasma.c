@@ -8,13 +8,13 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define WINDOW_TITLE "RGB Plasma GL"
+#define WINDOW_TITLE "Cube Plasma"
 #define DEFAULT_WIDTH 640
 #define DEFAULT_HEIGHT 480
 #define DEFAULT_REFRESH_RATE 60
 #define PI 3.1415926535897932384626433832795
-#define VERTEX_SHADER_PATH "src/shaders/3d_plasma.vert"
-#define FRAGMENT_SHADER_PATH "src/shaders/3d_plasma.frag"
+#define VERTEX_SHADER_PATH "src/shaders/cube_plasma.vert"
+#define FRAGMENT_SHADER_PATH "src/shaders/cube_plasma.frag"
 
 #define LogError(...) SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
 #define LogInfo(...) SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
@@ -207,8 +207,8 @@ int InitGL(void) {
     if (vertexShaderSource == NULL) {
         LogError("could not read file %s", VERTEX_SHADER_PATH);
     }
-    if (compileShader(GL_VERTEX_SHADER, (const char **)&vertexShaderSource, &vertexShader) !=
-        GL_TRUE) {
+    if (compileShader(GL_VERTEX_SHADER, (const char **)&vertexShaderSource,
+                      &vertexShader) != GL_TRUE) {
         LogShaderError(vertexShader);
         return -1;
     }
@@ -224,8 +224,8 @@ int InitGL(void) {
         return -1;
     }
 
-	free(fragmentShaderSource);
-	free(vertexShaderSource);
+    free(fragmentShaderSource);
+    free(vertexShaderSource);
 
     glAttachShader(gProgramId, vertexShader);
     glAttachShader(gProgramId, fragmentShader);

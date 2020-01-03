@@ -159,7 +159,7 @@ static inline void Mat4LookAt(Vec3 eye, Vec3 center, Vec3 up, Mat4 out) {
 }
 
 static inline void Mat4Perspective(float fovy, float aspect, float nearVal,
-                            float farVal, Mat4 out) {
+                                   float farVal, Mat4 out) {
     float f, fn;
 
     f = 1.0f / tanf(fovy * 0.5f);
