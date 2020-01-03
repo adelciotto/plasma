@@ -38,16 +38,16 @@ make {{demo_name}}
 
 Replace `{{demo_name}}` with any of the following:
 
-* `color_cycling_plasma`
+* `palette_plasma`
 * `rgb_plasma`
 * `gl_rgb_plasma`
-* `3d_plasma`
+* `cube_plasma`
 
 ## Demos
 
-### Color cycling plasma
+### Palette Plasma
 
-![color-cycling-plasma](previews/color-cycling-plasma-preview.png)
+![palette-plasma](previews/color-cycling-plasma-preview.png)
 
 A software rendered Plasma which is precalculated and cycles through a color palette. It is somewhat less dynamic than the other demos, but, runs quite fast at high resolutions by avoiding lots of sin calculations at runtime.
 
@@ -56,13 +56,13 @@ A software rendered Plasma which is precalculated and cycles through a color pal
 Compile the demo:
 
 ```sh
-make color_cycling_plasma
+make palette_plasma
 ```
 
 Run it:
 
 ```sh
-./color_cycling_plasma
+./palette_plasma
 ```
 
 #### Command line options
@@ -73,7 +73,7 @@ Run it:
 | Height        | -h {{value}}  | Integer | 480           |
 | Fullscreen    | -f            | Boolean | False         |
 
-### RGB plasma
+### RGB Plasma
 
 ![rgb-plasma](previews/rgb-plasma-preview.png)
 
@@ -105,7 +105,7 @@ Run it:
 
 Note: Interactive mode will enable some mouse input which effects the plasma.
 
-### GL RGB plasma
+### GL RGB Plasma
 
 An OpenGL accelerated version of the Plasma which uses a fragment shader to implement the effect. Runs at 60fps in high definition (1080p).
 
@@ -131,9 +131,9 @@ Run it:
 | Height        | -h {{value}}  | Integer | 480           |
 | Fullscreen    | -f            | Boolean | False         |
 
-### 3D plasma
+### Cube Plasma
 
-![3d-plasma](previews/3d-plasma-preview.png)
+![cube-plasma](previews/3d-plasma-preview.png)
 
 An OpenGL accelerated version of the Plasma which draws a 3D cube with each face having a different coloured plasma. Inspired by the plasma cube from the [Second Reality](https://www.youtube.com/watch?v=iw17c70uJes) demo by [Future Crew](https://en.wikipedia.org/wiki/Future_Crew).
 
@@ -142,13 +142,13 @@ An OpenGL accelerated version of the Plasma which draws a 3D cube with each face
 Compile the demo:
 
 ```sh
-make 3d_plasma
+make cube_plasma
 ```
 
 Run it:
 
 ```sh
-./3d_plasma
+./cube_plasma
 ```
 
 #### Command line options
